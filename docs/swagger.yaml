@@ -1,0 +1,52 @@
+basePath: /api/v1
+definitions:
+  dtos.Response:
+    properties:
+      message:
+        description: Mensaje descriptivo
+        example: Operación realizada con éxito
+        type: string
+      status:
+        description: Ejemplo de estado para éxito o error
+        example: ok
+        type: string
+    type: object
+  dtos.UserDto:
+    properties:
+      password:
+        type: string
+      role_id:
+        type: integer
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para la gestión de una peluquería
+  title: Peluquería API
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo usuario con un rol específico
+      parameters:
+      - description: Datos del usuario
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuario creado con éxito
+          schema:
+            $ref: '#/definitions/dtos.Response'
+      summary: Crear un usuario
+      tags:
+      - Users
+swagger: "2.0"
