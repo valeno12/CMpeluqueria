@@ -12,7 +12,7 @@ type AppointmentProduct struct {
 	Appointment   Appointment    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"appointment"`
 	ProductID     uint           `gorm:"not null" json:"product_id"`
 	Product       Product        `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"product"`
-	Quantity      uint           `gorm:"not null" json:"quantity"`
+	Quantity      float64        `gorm:"not null" json:"quantity"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-" swag:"-"`

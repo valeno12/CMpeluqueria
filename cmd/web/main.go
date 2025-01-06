@@ -83,6 +83,7 @@ func runMigrations() {
 		&models.Role{},
 		&models.Permission{},
 		&models.RolePermission{},
+		&models.StockMovement{},
 	)
 	if err != nil {
 		logger.Log.Fatal("Error al ejecutar migraciones: ", err)

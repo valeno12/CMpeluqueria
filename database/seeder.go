@@ -79,12 +79,14 @@ func seedPermissions(db *gorm.DB) {
 		{Name: "create_user", Description: "Crear usuarios"},
 		{Name: "update_user", Description: "Editar usuarios"},
 		{Name: "delete_user", Description: "Eliminar usuarios"},
+		{Name: "see_roles", Description: "Ver roles"},
 		{Name: "create_role", Description: "Crear roles"},
 		{Name: "update_role", Description: "Editar roles"},
 		{Name: "delete_role", Description: "Eliminar roles"},
 		{Name: "create_client", Description: "Crear clientes"},
 		{Name: "update_client", Description: "Editar clientes"},
 		{Name: "delete_client", Description: "Eliminar clientes"},
+		{Name: "restock_product", Description: "Reponer productos"},
 	}
 
 	for _, permission := range permissions {
@@ -108,7 +110,7 @@ func seedRolePermissions(db *gorm.DB) {
 			"create_service", "update_service", "delete_service",
 			"create_product", "update_product", "delete_product",
 			"create_user", "update_user", "delete_user",
-			"create_role", "update_role", "delete_role", "create_client", "update_client", "delete_client",
+			"create_role", "update_role", "delete_role", "create_client", "update_client", "delete_client", "restock_product",
 		},
 		"empleado": {
 			"create_appointment", "update_appointment",

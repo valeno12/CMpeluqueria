@@ -13,126 +13,130 @@ import (
 )
 
 func Login(loginDto dtos.LoginDto) (dtos.LoginAnswerDto, error) {
-	logger.Log.Infof("Intentando login para usuario: %s", loginDto.Username)
+	logger.Log.Infof("[UserService][Login] Intentando login para usuario: %s", loginDto.Username)
 
-	// Validar datos
 	if loginDto.Username == "" || loginDto.Password == "" {
-		logger.Log.Warn("Login fallido: username o password faltante")
+		logger.Log.Warn("[UserService][Login] Username o password faltante")
 		return dtos.LoginAnswerDto{}, errors.New("username y password son obligatorios")
 	}
 
-	// Buscar usuario
 	var user models.User
 	if err := database.DB.Where("username = ?", loginDto.Username).First(&user).Error; err != nil {
-		logger.Log.Warnf("Usuario no encontrado: %s", loginDto.Username)
+		logger.Log.Warnf("[UserService][Login] Usuario no encontrado: %s", loginDto.Username)
 		return dtos.LoginAnswerDto{}, errors.New("usuario no encontrado")
 	}
 
-	// Verificar contraseña
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginDto.Password)); err != nil {
-		logger.Log.Warnf("Contraseña incorrecta para usuario: %s", loginDto.Username)
+		logger.Log.Warnf("[UserService][Login] Contraseña incorrecta para usuario: %s", loginDto.Username)
 		return dtos.LoginAnswerDto{}, errors.New("contraseña incorrecta")
 	}
 
-	// Generar token
-	jwtkey, jwterr := middlewares.GenerateToken(user)
-	if jwterr != nil {
-		logger.Log.Error("Error al generar el token para usuario: ", loginDto.Username, " - ", jwterr)
+	jwtKey, jwtErr := middlewares.GenerateToken(user)
+	if jwtErr != nil {
+		logger.Log.Error("[UserService][Login] Error al generar el token: ", jwtErr)
 		return dtos.LoginAnswerDto{}, errors.New("error al generar el token")
 	}
 
-	return dtos.LoginAnswerDto{
-		Username: user.Username,
-		Token:    jwtkey,
-	}, nil
+	logger.Log.Infof("[UserService][Login] Login exitoso para usuario: %s", loginDto.Username)
+	return dtos.LoginAnswerDto{Username: user.Username, Token: jwtKey}, nil
 }
 
 func CreateUser(userDto dtos.UserDto) error {
-	logger.Log.Infof("Intentando crear usuario: %s", userDto.Username)
+	logger.Log.Infof("[UserService][CreateUser] Intentando crear usuario: %s", userDto.Username)
 
-	// Validar datos
 	if userDto.Username == "" || userDto.Password == "" {
-		logger.Log.Warn("Datos faltantes para crear usuario")
+		logger.Log.Warn("[UserService][CreateUser] Username o password faltante")
 		return errors.New("username y password son obligatorios")
 	}
 
-	// Verificar si el usuario ya existe
 	var existingUser models.User
 	if err := database.DB.Where("username = ?", userDto.Username).First(&existingUser).Error; err == nil {
-		logger.Log.Warnf("Usuario ya existente: %s", userDto.Username)
+		logger.Log.Warnf("[UserService][CreateUser] Usuario ya existente: %s", userDto.Username)
 		return errors.New("el nombre de usuario ya está en uso")
 	}
 
-	// Encriptar contraseña
 	userDto.Password = HashPassword(userDto.Password)
+	user := models.User{Username: userDto.Username, Password: userDto.Password, RoleID: userDto.RoleID}
 
-	// Crear el usuario
-	user := models.User{
-		Username: userDto.Username,
-		Password: userDto.Password,
-		RoleID:   userDto.RoleID,
-	}
 	if err := database.DB.Create(&user).Error; err != nil {
-		logger.Log.Error("Error al crear usuario: ", err)
+		logger.Log.Error("[UserService][CreateUser] Error al crear usuario: ", err)
 		return err
 	}
 
-	logger.Log.Infof("Usuario creado con éxito: %s", userDto.Username)
+	logger.Log.Infof("[UserService][CreateUser] Usuario creado con éxito: %s", userDto.Username)
 	return nil
 }
 
-func GetAllUsers() ([]models.User, error) {
-	logger.Log.Info("Obteniendo lista de todos los usuarios")
+func GetAllUsers() ([]dtos.GetUserDto, error) {
+	logger.Log.Info("[UserService][GetAllUsers] Obteniendo todos los usuarios")
 
 	var users []models.User
-	result := database.DB.Preload("Role").Find(&users)
-	if result.Error != nil {
-		logger.Log.Error("Error al obtener usuarios: ", result.Error)
-		return nil, result.Error
+	if err := database.DB.Preload("Role").Find(&users).Error; err != nil {
+		logger.Log.Error("[UserService][GetAllUsers] Error al obtener usuarios: ", err)
+		return nil, err
 	}
 
-	logger.Log.Infof("Usuarios obtenidos: %d", len(users))
-	return users, nil
+	var userDtos []dtos.GetUserDto
+	for _, user := range users {
+		roleName := ""
+		if user.Role.ID != 0 {
+			roleName = user.Role.Name
+		}
+		userDtos = append(userDtos, dtos.GetUserDto{
+			ID:       user.ID,
+			Username: user.Username,
+			RoleName: roleName,
+		})
+	}
+
+	logger.Log.Infof("[UserService][GetAllUsers] Usuarios obtenidos: %d", len(users))
+	return userDtos, nil
 }
 
-func GetUserByID(id uint) (models.User, error) {
-	logger.Log.Infof("Buscando usuario con ID: %d", id)
+func GetUserByID(id uint) (dtos.GetUserDto, error) {
+	logger.Log.Infof("[UserService][GetUserByID] Buscando usuario con ID: %d", id)
 
 	var user models.User
-	if err := database.DB.First(&user, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			logger.Log.Warnf("Usuario no encontrado: ID %d", id)
-			return models.User{}, errors.New("usuario no encontrado")
+	if err := database.DB.Preload("Role").First(&user, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Log.Warnf("[UserService][GetUserByID] Usuario no encontrado: ID %d", id)
+			return dtos.GetUserDto{}, errors.New("usuario no encontrado")
 		}
-		logger.Log.Error("Error al buscar usuario: ", err)
-		return models.User{}, err
+		logger.Log.Error("[UserService][GetUserByID] Error al buscar usuario: ", err)
+		return dtos.GetUserDto{}, err
 	}
 
-	logger.Log.Infof("Usuario encontrado: ID %d", id)
-	return user, nil
+	roleName := ""
+	if user.Role.ID != 0 {
+		roleName = user.Role.Name
+	}
+
+	logger.Log.Infof("[UserService][GetUserByID] Usuario encontrado: ID %d", id)
+	return dtos.GetUserDto{
+		ID:       user.ID,
+		Username: user.Username,
+		RoleName: roleName,
+	}, nil
 }
 
 func UpdateUser(userDto dtos.UserDto, id uint) error {
-	logger.Log.Infof("Actualizando usuario con ID: %d", id)
+	logger.Log.Infof("[UserService][UpdateUser] Actualizando usuario con ID: %d", id)
 
-	// Validar ID
 	if id == 0 {
-		logger.Log.Warn("ID del usuario faltante en actualización")
+		logger.Log.Warn("[UserService][UpdateUser] ID del usuario faltante")
 		return errors.New("el ID del usuario es obligatorio")
 	}
 
-	// Buscar usuario existente
 	var user models.User
 	if err := database.DB.First(&user, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			logger.Log.Warnf("Usuario no encontrado para actualizar: ID %d", id)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Log.Warnf("[UserService][UpdateUser] Usuario no encontrado: ID %d", id)
 			return errors.New("el usuario no existe")
 		}
-		logger.Log.Error("Error al buscar usuario para actualizar: ", err)
+		logger.Log.Error("[UserService][UpdateUser] Error al buscar usuario: ", err)
 		return err
 	}
 
-	// Actualizar los campos necesarios
 	if userDto.Username != "" {
 		user.Username = userDto.Username
 	}
@@ -144,37 +148,37 @@ func UpdateUser(userDto dtos.UserDto, id uint) error {
 	}
 
 	if err := database.DB.Save(&user).Error; err != nil {
-		logger.Log.Error("Error al actualizar usuario: ", err)
-		return errors.New("error al actualizar el usuario")
+		logger.Log.Error("[UserService][UpdateUser] Error al actualizar usuario: ", err)
+		return errors.New("error al actualizar usuario")
 	}
 
-	logger.Log.Infof("Usuario actualizado con éxito: ID %d", id)
+	logger.Log.Infof("[UserService][UpdateUser] Usuario actualizado con éxito: ID %d", id)
 	return nil
 }
 
 func DeleteUser(id uint) error {
-	logger.Log.Infof("Eliminando usuario con ID: %d", id)
+	logger.Log.Infof("[UserService][DeleteUser] Eliminando usuario con ID: %d", id)
 
 	if id == 0 {
-		logger.Log.Warn("ID del usuario faltante en eliminación")
+		logger.Log.Warn("[UserService][DeleteUser] ID del usuario faltante")
 		return errors.New("el ID del usuario es obligatorio")
 	}
 
 	if err := database.DB.Delete(&models.User{}, id).Error; err != nil {
-		logger.Log.Error("Error al eliminar usuario: ", err)
+		logger.Log.Error("[UserService][DeleteUser] Error al eliminar usuario: ", err)
 		return errors.New("error al eliminar usuario")
 	}
 
-	logger.Log.Infof("Usuario eliminado con éxito: ID %d", id)
+	logger.Log.Infof("[UserService][DeleteUser] Usuario eliminado con éxito: ID %d", id)
 	return nil
 }
 
 func HashPassword(pass string) string {
-	logger.Log.Info("Encriptando contraseña")
+	logger.Log.Info("[UserService][HashPassword] Encriptando contraseña")
 	costo := 8
 	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), costo)
 	if err != nil {
-		logger.Log.Error("Error al encriptar contraseña: ", err)
+		logger.Log.Error("[UserService][HashPassword] Error al encriptar contraseña: ", err)
 	}
 	return string(bytes)
 }

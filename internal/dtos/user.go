@@ -5,3 +5,9 @@ type UserDto struct {
 	Password string `json:"password"`
 	RoleID   uint   `json:"role_id"`
 }
+
+type GetUserDto struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	RoleName string `json:"role_name"`
+}
