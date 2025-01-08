@@ -12,7 +12,7 @@ const prefix = "/api/v1"
 
 func RegisterRoutes(e *echo.Echo) {
 	e.Use(middlewares.RouteLogger)
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET(prefix+"/swagger/*", echoSwagger.WrapHandler)
 	// Rutas públicas
 	e.POST(prefix+"/login", controllers.Login) // Iniciar sesión
 
@@ -64,4 +64,7 @@ func RegisterRoutes(e *echo.Echo) {
 	appointmentGroup.PUT("/:id/products", controllers.UpdateAppointmentProducts, middlewares.PermissionMiddleware("update_appointment"))
 	appointmentGroup.DELETE("/:id", controllers.DeleteAppointment, middlewares.PermissionMiddleware("delete_appointment"))
 	appointmentGroup.PUT("/:id/finalizar", controllers.FinalizeAppointment)
+
+	appointmentStats := e.Group(prefix+"/estadisticas", middlewares.JWTMiddleware)
+	appointmentStats.GET("/", controllers.GetMonthlyStatistics)
 }

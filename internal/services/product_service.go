@@ -10,37 +10,43 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateProduct(ProductDto dtos.CreateProductDto) error {
-	logger.Log.Infof("[ProductService][CreateProduct] Intentando crear producto: %s", ProductDto.Name)
-	if ProductDto.Name == "" || ProductDto.Unit == "" || ProductDto.Brand == "" {
+func CreateProduct(productDto dtos.CreateProductDto) error {
+	logger.Log.Infof("[ProductService][CreateProduct] Intentando crear producto: %s", productDto.Name)
+
+	// Validar datos
+	if productDto.Name == "" || productDto.Brand == "" || productDto.Unit == "" {
 		logger.Log.Warn("[ProductService][CreateProduct] Datos faltantes para crear producto")
-		return errors.New("nombre, unidad y marca son obligatorios")
+		return errors.New("nombre, marca y unidad son obligatorios")
 	}
-	if ProductDto.PackageCount <= 0 || ProductDto.UnitPerPackage <= 0 {
-		logger.Log.Warn("[ProductService][CreateProduct] PackageCount y UnitPerPackage deben ser mayores a 0")
-		return errors.New("cantidad de paquetes y unidades por paquete deben ser mayores a 0")
-	}
-	var existingProduct models.Product
-	if err := database.DB.Where("name = ? AND brand = ?", ProductDto.Name, ProductDto.Brand).First(&existingProduct).Error; err == nil {
-		logger.Log.Warnf("[ProductService][CreateProduct] Producto ya existe: %s %s", ProductDto.Name, ProductDto.Brand)
-		return errors.New("producto ya existe")
+	if productDto.PackageCount <= 0 || productDto.UnitPerPackage <= 0 {
+		logger.Log.Warn("[ProductService][CreateProduct] PackageCount o UnitPerPackage inválidos")
+		return errors.New("la cantidad de paquetes y unidades por paquete deben ser mayores a 0")
 	}
 
-	quantity := ProductDto.PackageCount * ProductDto.UnitPerPackage
+	// Verificar si el producto ya existe
+	var existingProduct models.Product
+	if err := database.DB.Where("name = ? AND brand = ?", productDto.Name, productDto.Brand).First(&existingProduct).Error; err == nil {
+		logger.Log.Warnf("[ProductService][CreateProduct] Producto ya existente: %s %s", productDto.Name, productDto.Brand)
+		return errors.New("el producto ya existe")
+	}
+
+	// Crear el producto
 	product := models.Product{
-		Name:          ProductDto.Name,
-		Unit:          ProductDto.Unit,
-		Brand:         ProductDto.Brand,
-		Quantity:      quantity,
-		LowStockAlert: ProductDto.LowStockAlert,
+		Name:          productDto.Name,
+		Unit:          productDto.Unit,
+		Brand:         productDto.Brand,
+		Quantity:      productDto.PackageCount * productDto.UnitPerPackage,
+		LowStockAlert: productDto.LowStockAlert,
 	}
 
 	movement := models.StockMovement{
-		ProductID:  product.ID,
-		Quantity:   quantity,
-		Reason:     "Inventario inicial",
-		UnityPrice: ProductDto.UnityPrice,
-		TotalPrice: ProductDto.UnityPrice * ProductDto.PackageCount,
+		ProductID:      product.ID,
+		ProductUnit:    productDto.Unit,
+		PackageCount:   &productDto.PackageCount,
+		UnitPerPackage: &productDto.UnitPerPackage,
+		Quantity:       productDto.PackageCount * productDto.UnitPerPackage,
+		Reason:         "Inventario inicial",
+		UnityPrice:     &productDto.UnityPrice,
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -54,57 +60,85 @@ func CreateProduct(ProductDto dtos.CreateProductDto) error {
 		return nil
 	})
 	if err != nil {
-		logger.Log.Error("[ProductService][CreateProduct] Error en transacción: ", err)
-		return errors.New("error al crear producto y registrar movimiento inicial" + err.Error())
+		logger.Log.Error("[ProductService][CreateProduct] Error al crear producto: ", err)
+		return errors.New("error al crear el producto")
 	}
 
+	logger.Log.Infof("[ProductService][CreateProduct] Producto creado con éxito: %s", product.Name)
 	return nil
 }
 
-func GetAllProducts() ([]models.Product, error) {
-	logger.Log.Info("[ProductService][GetAllProducts] Intentando obtener productos")
+func GetAllProducts() ([]dtos.GetProductDto, error) {
+	logger.Log.Info("[ProductService][GetAllProducts] Obteniendo todos los productos")
 
 	var products []models.Product
 	if err := database.DB.Find(&products).Error; err != nil {
 		logger.Log.Error("[ProductService][GetAllProducts] Error al obtener productos: ", err)
 		return nil, errors.New("error al obtener productos")
 	}
-
-	return products, nil
+	logger.Log.Infof("[ProductService][GetAllProducts] %d productos encontrados", len(products))
+	var productDto []dtos.GetProductDto
+	for _, product := range products {
+		productDto = append(productDto, dtos.GetProductDto{
+			ID:       product.ID,
+			Name:     product.Name,
+			Brand:    product.Brand,
+			Unit:     product.Unit,
+			Quantity: product.Quantity,
+		})
+	}
+	return productDto, nil
 }
 
-func GetProductByID(id uint) (models.Product, error) {
+func GetProductByID(id uint) (dtos.GetProductDto, error) {
 	logger.Log.Infof("[ProductService][GetProductByID] Intentando obtener producto con ID: %d", id)
 
 	var product models.Product
-	if err := database.DB.Where("id = ?", id).First(&product).Error; err != nil {
+	if err := database.DB.First(&product, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Log.Warnf("[ProductService][GetProductByID] Producto no encontrado: ID %d", id)
+			return dtos.GetProductDto{}, errors.New("producto no encontrado")
+		}
 		logger.Log.Error("[ProductService][GetProductByID] Error al obtener producto: ", err)
-		return models.Product{}, errors.New("error al obtener producto")
+		return dtos.GetProductDto{}, err
 	}
 
-	return product, nil
+	logger.Log.Infof("[ProductService][GetProductByID] Producto encontrado: %s", product.Name)
+	productDto := dtos.GetProductDto{
+		ID:       product.ID,
+		Name:     product.Name,
+		Brand:    product.Brand,
+		Unit:     product.Unit,
+		Quantity: product.Quantity,
+	}
+	return productDto, nil
 }
 
-func UpdateProduct(id uint, ProductDto dtos.UpdateProductDto) error {
-	logger.Log.Infof("[ProductService][UpdateProduct] Intentando actualizar producto con ID: %d", id)
+func UpdateProduct(id uint, productDto dtos.UpdateProductDto) error {
+	logger.Log.Infof("[ProductService][UpdateProduct] Actualizando producto con ID: %d", id)
 
-	product, err := GetProductByID(id)
-	if err != nil {
+	var product models.Product
+	if err := database.DB.First(&product, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Log.Warnf("[ProductService][UpdateProduct] Producto no encontrado: ID %d", id)
+			return errors.New("producto no encontrado")
+		}
+		logger.Log.Error("[ProductService][UpdateProduct] Error al buscar producto: ", err)
 		return err
 	}
 
-	// Validar y asignar valores
-	if ProductDto.Name != "" {
-		product.Name = ProductDto.Name
+	// Actualizar los campos necesarios
+	if productDto.Name != "" {
+		product.Name = productDto.Name
 	}
-	if ProductDto.Unit != "" {
-		product.Unit = ProductDto.Unit
+	if productDto.Brand != "" {
+		product.Brand = productDto.Brand
 	}
-	if ProductDto.Brand != "" {
-		product.Brand = ProductDto.Brand
+	if productDto.Unit != "" {
+		product.Unit = productDto.Unit
 	}
-	if ProductDto.LowStockAlert > 0 {
-		product.LowStockAlert = ProductDto.LowStockAlert
+	if productDto.LowStockAlert > 0 {
+		product.LowStockAlert = productDto.LowStockAlert
 	}
 
 	if err := database.DB.Save(&product).Error; err != nil {
@@ -112,16 +146,22 @@ func UpdateProduct(id uint, ProductDto dtos.UpdateProductDto) error {
 		return errors.New("error al actualizar producto")
 	}
 
-	logger.Log.Infof("[ProductService][UpdateProduct] Producto actualizado con éxito: ID %d", id)
+	logger.Log.Infof("[ProductService][UpdateProduct] Producto actualizado con éxito: %s", product.Name)
 	return nil
 }
 
 func DeleteProduct(id uint) error {
-	logger.Log.Infof("[ProductService][DeleteProduct] Intentando eliminar producto con ID: %d", id)
+	logger.Log.Infof("[ProductService][DeleteProduct] Eliminando producto con ID: %d", id)
 
-	if id == 0 {
-		logger.Log.Warn("[ProductService][DeleteProduct] ID del producto faltante en eliminación")
-		return errors.New("el ID del producto es obligatorio")
+	// Verificar si el producto está asociado a un turno
+	var count int64
+	if err := database.DB.Model(&models.AppointmentProduct{}).Where("product_id = ?", id).Count(&count).Error; err != nil {
+		logger.Log.Error("[ProductService][DeleteProduct] Error al verificar asociaciones: ", err)
+		return errors.New("error al verificar asociaciones")
+	}
+	if count > 0 {
+		logger.Log.Warn("[ProductService][DeleteProduct] El producto está asociado a turnos y no se puede eliminar")
+		return errors.New("el producto está asociado a turnos")
 	}
 
 	if err := database.DB.Delete(&models.Product{}, id).Error; err != nil {
@@ -134,12 +174,7 @@ func DeleteProduct(id uint) error {
 }
 
 func RestockProduct(id uint, restockDto dtos.RestockProductDto) error {
-	logger.Log.Infof("[ProductService][RestockProduct] Reestockeando producto ID: %d", id)
-
-	if restockDto.PackageCount <= 0 || restockDto.UnitPerPackage <= 0 {
-		logger.Log.Warn("[ProductService][RestockProduct] Datos inválidos: PackageCount o UnitPerPackage no pueden ser menores o iguales a 0")
-		return errors.New("cantidad de paquetes y unidades por paquete deben ser mayores a 0")
-	}
+	logger.Log.Infof("[ProductService][RestockProduct] Reestockeando producto con ID: %d", id)
 
 	var product models.Product
 	if err := database.DB.First(&product, id).Error; err != nil {
@@ -155,13 +190,15 @@ func RestockProduct(id uint, restockDto dtos.RestockProductDto) error {
 	quantityToAdd := restockDto.PackageCount * restockDto.UnitPerPackage
 	product.Quantity += quantityToAdd
 
-	// Registrar movimiento de stock (opcional)
+	// Registrar movimiento de stock
 	movement := models.StockMovement{
-		ProductID:  product.ID,
-		Quantity:   quantityToAdd,
-		Reason:     restockDto.Reason,
-		UnityPrice: restockDto.UnityPrice,
-		TotalPrice: restockDto.PackageCount * restockDto.UnityPrice,
+		ProductID:      product.ID,
+		ProductUnit:    product.Unit,
+		PackageCount:   &restockDto.PackageCount,
+		UnitPerPackage: &restockDto.UnitPerPackage,
+		Quantity:       quantityToAdd,
+		Reason:         restockDto.Reason,
+		UnityPrice:     &restockDto.UnityPrice,
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -174,10 +211,10 @@ func RestockProduct(id uint, restockDto dtos.RestockProductDto) error {
 		return nil
 	})
 	if err != nil {
-		logger.Log.Error("[ProductService][RestockProduct] Error en transacción: ", err)
-		return errors.New("error al crear producto y registrar movimiento inicial")
+		logger.Log.Error("[ProductService][RestockProduct] Error en la transacción: ", err)
+		return errors.New("error al reestockear producto")
 	}
-	logger.Log.Infof("[ProductService][RestockProduct] Producto %s reestockeado. Nueva cantidad: %.2f", product.Name, product.Quantity)
 
+	logger.Log.Infof("[ProductService][RestockProduct] Producto reestockeado con éxito: %s", product.Name)
 	return nil
 }

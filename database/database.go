@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"peluqueria/logger"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,15 +22,28 @@ func InitializeDatabase() error {
 		os.Getenv("DB_NAME"),
 	)
 
-	// Conectar a la base de datos
-	logger.Log.Info("Intentando conectar a la base de datos...")
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		logger.Log.Fatal("Error al conectar con la base de datos: ", err)
-		return err
+	// Intentos de conexión
+	maxRetries := 5
+	retryDelay := 10 * time.Second
+
+	for i := 1; i <= maxRetries; i++ {
+		logger.Log.Infof("Intentando conectar a la base de datos (Intento %d/%d)...", i, maxRetries)
+		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err == nil {
+			logger.Log.Info("Conexión a la base de datos exitosa")
+			DB = db
+			return nil
+		}
+
+		logger.Log.Warnf("Error al conectar con la base de datos: %v", err)
+		if i < maxRetries {
+			logger.Log.Infof("Reintentando en %v...", retryDelay)
+			time.Sleep(retryDelay)
+		} else {
+			logger.Log.Fatal("No se pudo conectar a la base de datos después de varios intentos")
+			return err
+		}
 	}
 
-	logger.Log.Info("Conexión a la base de datos exitosa")
-	DB = db
-	return nil
+	return fmt.Errorf("error inesperado al intentar conectar a la base de datos")
 }

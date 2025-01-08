@@ -5,12 +5,12 @@ type RoleDto struct {
 }
 
 type CreateRoleDto struct {
-	Name            string   `json:"name"`
-	PermissionNames []string `json:"permission_names"`
+	Name            string   `json:"name" example:"empleado"`
+	PermissionNames []string `json:"permission_names" example:"create_user, delete_user"`
 }
 
 type GetRoleDto struct {
 	ID          uint     `json:"id"`
-	Name        string   `json:"name"`
-	Permissions []string `json:"permissions"` // Solo los nombres de los permisos
+	Name        string   `json:"name" example:"empleado"`
+	Permissions []string `json:"permissions" example:"create_user, delete_user"` // Solo los nombres de los permisos
 }

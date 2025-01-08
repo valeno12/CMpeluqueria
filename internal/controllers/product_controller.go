@@ -11,11 +11,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary Crear producto
+// @Description Crea un nuevo producto en el sistema.
+// @Tags Productos
+// @Accept json
+// @Produce json
+// @Param product body dtos.CreateProductDto true "Datos del producto"
+// @Success 200 {object} dtos.Response{data=nil}
+// @Failure 400 {object} dtos.Response{data=nil} "Datos inválidos"
+// @Failure 500 {object} dtos.Response{data=nil} "Error interno del servidor"
+// @Router /producto [post]
 func CreateProduct(c echo.Context) error {
 	var product dtos.CreateProductDto
 	if err := c.Bind(&product); err != nil {
 		logger.Log.Warn("[ProductController][CreateProduct] Error al crear producto: datos inválidos")
-		return helpers.RespondError(c, http.StatusBadRequest, "datos invalidos")
+		return helpers.RespondError(c, http.StatusBadRequest, "Datos inválidos")
 	}
 	err := services.CreateProduct(product)
 	if err != nil {
@@ -26,6 +36,13 @@ func CreateProduct(c echo.Context) error {
 	return helpers.RespondSuccess(c, "Producto creado", nil)
 }
 
+// @Summary Obtener todos los productos
+// @Description Devuelve una lista de todos los productos registrados.
+// @Tags Productos
+// @Produce json
+// @Success 200 {object} dtos.Response{data=[]dtos.GetProductDto}
+// @Failure 500 {object} dtos.Response{data=nil} "Error interno del servidor"
+// @Router /producto [get]
 func GetAllProducts(c echo.Context) error {
 	products, err := services.GetAllProducts()
 	if err != nil {
@@ -35,6 +52,15 @@ func GetAllProducts(c echo.Context) error {
 	return helpers.RespondSuccess(c, "Productos obtenidos", products)
 }
 
+// @Summary Obtener producto por ID
+// @Description Devuelve los datos de un producto específico.
+// @Tags Productos
+// @Produce json
+// @Param id path int true "ID del producto"
+// @Success 200 {object} dtos.Response{data=dtos.GetProductDto}
+// @Failure 400 {object} dtos.Response{data=nil} "ID inválido"
+// @Failure 404 {object} dtos.Response{data=nil} "Producto no encontrado"
+// @Router /producto/{id} [get]
 func GetProductByID(c echo.Context) error {
 	id := c.Param("id")
 	productID, err := strconv.ParseUint(id, 10, 32)
@@ -46,12 +72,23 @@ func GetProductByID(c echo.Context) error {
 	product, err := services.GetProductByID(uint(productID))
 	if err != nil {
 		logger.Log.Error("[ProductController][GetProductByID] Error al obtener producto: ", err)
-		return helpers.RespondError(c, http.StatusInternalServerError, err.Error())
+		return helpers.RespondError(c, http.StatusNotFound, err.Error())
 	}
 	logger.Log.Info("[ProductController][GetProductByID] Producto encontrado: ", product.Name)
 	return helpers.RespondSuccess(c, "Producto encontrado", product)
 }
 
+// @Summary Actualizar producto
+// @Description Actualiza los datos de un producto específico.
+// @Tags Productos
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del producto"
+// @Param product body dtos.UpdateProductDto true "Datos del producto"
+// @Success 200 {object} dtos.Response{data=nil}
+// @Failure 400 {object} dtos.Response{data=nil} "Datos o ID inválidos"
+// @Failure 500 {object} dtos.Response{data=nil} "Error interno del servidor"
+// @Router /producto/{id} [put]
 func UpdateProduct(c echo.Context) error {
 	id := c.Param("id")
 	productID, err := strconv.ParseUint(id, 10, 32)
@@ -63,7 +100,7 @@ func UpdateProduct(c echo.Context) error {
 	var product dtos.UpdateProductDto
 	if err := c.Bind(&product); err != nil {
 		logger.Log.Warn("[ProductController][UpdateProduct] Error al actualizar producto: datos inválidos")
-		return helpers.RespondError(c, http.StatusBadRequest, "datos invalidos")
+		return helpers.RespondError(c, http.StatusBadRequest, "Datos inválidos")
 	}
 
 	err = services.UpdateProduct(uint(productID), product)
@@ -75,6 +112,15 @@ func UpdateProduct(c echo.Context) error {
 	return helpers.RespondSuccess(c, "Producto actualizado", nil)
 }
 
+// @Summary Eliminar producto
+// @Description Elimina un producto específico.
+// @Tags Productos
+// @Produce json
+// @Param id path int true "ID del producto"
+// @Success 200 {object} dtos.Response{data=nil}
+// @Failure 400 {object} dtos.Response{data=nil} "ID inválido"
+// @Failure 500 {object} dtos.Response{data=nil} "Error interno del servidor"
+// @Router /producto/{id} [delete]
 func DeleteProduct(c echo.Context) error {
 	id := c.Param("id")
 	productID, err := strconv.ParseUint(id, 10, 32)
@@ -92,6 +138,17 @@ func DeleteProduct(c echo.Context) error {
 	return helpers.RespondSuccess(c, "Producto eliminado", nil)
 }
 
+// @Summary Reabastecer producto
+// @Description Agrega stock adicional a un producto existente.
+// @Tags Productos
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del producto"
+// @Param restock body dtos.RestockProductDto true "Datos para el reestock"
+// @Success 200 {object} dtos.Response{data=nil}
+// @Failure 400 {object} dtos.Response{data=nil} "Datos o ID inválidos"
+// @Failure 500 {object} dtos.Response{data=nil} "Error interno del servidor"
+// @Router /producto/{id}/restock [post]
 func RestockProduct(c echo.Context) error {
 	productIDParam := c.Param("id")
 	productID, err := strconv.ParseUint(productIDParam, 10, 32)

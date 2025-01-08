@@ -1,7 +1,306 @@
 basePath: /api/v1
 definitions:
+  dtos.AllAppointmentDto:
+    properties:
+      appointment_date:
+        example: 12/01/2025 15:30
+        type: string
+      client_id:
+        example: 1
+        type: integer
+      client_name:
+        example: Juan Pérez
+        type: string
+      estimated_time_minutes:
+        example: 60
+        type: integer
+      id:
+        example: 1
+        type: integer
+      status:
+        example: pendiente
+        type: string
+    type: object
+  dtos.AppointmentByIDDto:
+    properties:
+      appointment_date:
+        example: 12/01/2025 15:30
+        type: string
+      client_id:
+        example: 1
+        type: integer
+      client_name:
+        example: Juan Pérez
+        type: string
+      created_at:
+        example: "2025-01-08T10:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/dtos.AppointmentProductDto'
+        type: array
+      services:
+        items:
+          $ref: '#/definitions/dtos.AppointmentServiceDto'
+        type: array
+      status:
+        example: pendiente
+        type: string
+      updated_at:
+        example: "2025-01-08T12:00:00Z"
+        type: string
+    type: object
+  dtos.AppointmentProductDto:
+    properties:
+      name:
+        example: Gel fijador
+        type: string
+      product_id:
+        example: 1
+        type: integer
+      quantity:
+        example: 1
+        type: number
+      unit:
+        description: Unidad del producto
+        example: unidad
+        type: string
+    type: object
+  dtos.AppointmentServiceDto:
+    properties:
+      estimated_time_minutes:
+        example: 30
+        type: integer
+      price:
+        example: 1500
+        type: number
+      service_id:
+        example: 1
+        type: integer
+      service_name:
+        example: Corte de cabello
+        type: string
+    type: object
+  dtos.ClientAppointmentDto:
+    properties:
+      appointment_date:
+        example: 30/09/2002 16:30
+        type: string
+      id:
+        type: integer
+      status:
+        example: finalizado
+        type: string
+    type: object
+  dtos.ClientDTO:
+    properties:
+      email:
+        example: example@gmail.com
+        type: string
+      last_name:
+        example: Garcia Mendez
+        type: string
+      name:
+        example: Valentino
+        type: string
+      phone:
+        example: "343534345"
+        type: string
+    type: object
+  dtos.CreateAppointmentDto:
+    properties:
+      appointment_date:
+        description: 'Formato: HH:MM DD/MM/YYYY'
+        example: 15:30 12/01/2025
+        type: string
+      client_id:
+        description: ID del cliente
+        example: 1
+        type: integer
+      service_id:
+        description: IDs de los servicios asociados
+        example:
+        - 1
+        - 2
+        items:
+          type: integer
+        type: array
+    type: object
+  dtos.CreateProductDto:
+    properties:
+      brand:
+        example: Head & Shoulders
+        type: string
+      low_stock_alert:
+        example: 100
+        type: number
+      name:
+        example: Shampoo Anticaspa
+        type: string
+      package_count:
+        example: 32
+        type: number
+      unit:
+        example: ml
+        type: string
+      unit_per_package:
+        example: 500
+        type: number
+      unity_price:
+        example: 10000
+        type: number
+    type: object
+  dtos.CreateRoleDto:
+    properties:
+      name:
+        example: empleado
+        type: string
+      permission_names:
+        example:
+        - create_user
+        - ' delete_user'
+        items:
+          type: string
+        type: array
+    type: object
+  dtos.ErrorResponse:
+    properties:
+      message:
+        description: Detalle del error
+        example: Descripción del error
+        type: string
+      status:
+        description: Siempre "error"
+        example: error
+        type: string
+    type: object
+  dtos.FinalizeAppointmentDto:
+    properties:
+      payment_method:
+        example: tarjeta
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/dtos.FinalizeAppointmentProductDto'
+        type: array
+    type: object
+  dtos.FinalizeAppointmentProductDto:
+    properties:
+      product_id:
+        example: 1
+        type: integer
+      quantity:
+        example: 2
+        type: number
+    type: object
+  dtos.GetClientDto:
+    properties:
+      appointments:
+        items:
+          $ref: '#/definitions/dtos.ClientAppointmentDto'
+        type: array
+      email:
+        example: example@gmail.com
+        type: string
+      id:
+        type: integer
+      last_name:
+        example: Garcia Mendez
+        type: string
+      name:
+        example: Valentino
+        type: string
+      phone:
+        example: "343534345"
+        type: string
+    type: object
+  dtos.GetProductDto:
+    properties:
+      brand:
+        example: Head & Shoulders
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: Shampoo Anticaspa
+        type: string
+      quantity:
+        example: 400
+        type: number
+      unit:
+        example: ml
+        type: string
+    type: object
+  dtos.GetRoleDto:
+    properties:
+      id:
+        type: integer
+      name:
+        example: empleado
+        type: string
+      permissions:
+        description: Solo los nombres de los permisos
+        example:
+        - create_user
+        - ' delete_user'
+        items:
+          type: string
+        type: array
+    type: object
+  dtos.GetServiceDto:
+    properties:
+      description:
+        example: Corte de pelo clasico
+        type: string
+      estimated_time_minutes:
+        example: 90
+        type: integer
+      name:
+        example: Corte de pelo
+        type: string
+      price:
+        example: 10000
+        type: number
+    type: object
+  dtos.GetUserDto:
+    properties:
+      id:
+        description: ID del usuario
+        example: 1
+        type: integer
+      role_name:
+        description: Nombre del rol del usuario
+        example: Administrador
+        type: string
+      username:
+        description: Nombre de usuario
+        example: admin
+        type: string
+    type: object
+  dtos.LoginAnswerDto:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYzODMzMzcsImlhdCI6MTczNjI5NjkzNywicm
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  dtos.LoginDto:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   dtos.Response:
     properties:
+      data:
+        description: Datos adicionales
       message:
         description: Mensaje descriptivo
         example: Operación realizada con éxito
@@ -11,13 +310,115 @@ definitions:
         example: ok
         type: string
     type: object
+  dtos.RestockProductDto:
+    properties:
+      package_count:
+        example: 32
+        type: number
+      reason:
+        description: Razón del movimiento (opcional)
+        example: Reinventario
+        type: string
+      unit_per_package:
+        example: 500
+        type: number
+      unity_price:
+        description: Precio unitario
+        example: 10000
+        type: number
+    type: object
+  dtos.ServiceDto:
+    properties:
+      description:
+        example: Corte de pelo clasico
+        type: string
+      estimated_time_hours:
+        example: 1
+        type: integer
+      estimated_time_minutes:
+        example: 30
+        type: integer
+      name:
+        example: Corte de pelo
+        type: string
+      price:
+        example: 10000
+        type: number
+    type: object
+  dtos.StockMovementDto:
+    properties:
+      created_at:
+        example: 30/09/2025 15:30
+        type: string
+      id:
+        example: 1
+        type: integer
+      package_count:
+        description: Mostrar solo si es entrada
+        example: 5
+        type: number
+      product_brand:
+        example: Pantene
+        type: string
+      product_id:
+        example: 10
+        type: integer
+      product_name:
+        example: Shampoo
+        type: string
+      product_unit:
+        example: lt
+        type: string
+      quantity:
+        example: 20.5
+        type: number
+      reason:
+        example: Compra de stock
+        type: string
+      unit_per_package:
+        description: Mostrar solo si es entrada
+        example: 4
+        type: number
+      unity_price:
+        description: Mostrar solo si es entrada
+        example: 15000
+        type: number
+    type: object
+  dtos.UpdateAppointmentProductsDto:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/dtos.FinalizeAppointmentProductDto'
+        type: array
+    type: object
+  dtos.UpdateProductDto:
+    properties:
+      brand:
+        example: Head & Shoulders
+        type: string
+      low_stock_alert:
+        example: 100
+        type: number
+      name:
+        example: Shampoo Anticaspa
+        type: string
+      unit:
+        example: ml
+        type: string
+    type: object
   dtos.UserDto:
     properties:
       password:
+        description: Contraseña del usuario
+        example: contraseña123
         type: string
       role_id:
+        description: ID del rol asignado al usuario
+        example: 2
         type: integer
       username:
+        description: Nombre único del usuario
+        example: nuevo_usuario
         type: string
     type: object
 host: localhost:8080
@@ -27,11 +428,1302 @@ info:
   title: Peluquería API
   version: "1.0"
 paths:
-  /users:
+  /cliente:
+    get:
+      description: Devuelve una lista de todos los clientes registrados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de clientes encontrados
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.GetClientDto'
+                  type: array
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener todos los clientes
+      tags:
+      - Clientes
     post:
       consumes:
       - application/json
-      description: Crea un nuevo usuario con un rol específico
+      description: Crea un nuevo cliente en el sistema.
+      parameters:
+      - description: Datos del cliente
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ClientDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cliente creado exitosamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: 'Datos inválidos. Ejemplo: El cliente ya existe'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear cliente
+      tags:
+      - Clientes
+  /cliente/{id}:
+    delete:
+      description: Elimina un cliente específico.
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cliente eliminado exitosamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar cliente
+      tags:
+      - Clientes
+    get:
+      description: Devuelve los datos de un cliente específico.
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cliente encontrado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.GetClientDto'
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "404":
+          description: Cliente no encontrado
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener cliente por ID
+      tags:
+      - Clientes
+    put:
+      consumes:
+      - application/json
+      description: Actualiza los datos de un cliente específico.
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos actualizados del cliente
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ClientDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cliente actualizado exitosamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Datos o ID inválidos
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar cliente
+      tags:
+      - Clientes
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Permite a un usuario autenticarse en el sistema.
+      parameters:
+      - description: Datos de inicio de sesión
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token de acceso
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.LoginAnswerDto'
+              type: object
+        "400":
+          description: 'Datos inválidos. Ejemplo: El formato de los datos es incorrecto'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "401":
+          description: 'Credenciales inválidas. Ejemplo: Usuario o contraseña incorrectos'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      summary: Iniciar sesión
+      tags:
+      - Autenticación
+  /producto:
+    get:
+      description: Devuelve una lista de todos los productos registrados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.GetProductDto'
+                  type: array
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Obtener todos los productos
+      tags:
+      - Productos
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo producto en el sistema.
+      parameters:
+      - description: Datos del producto
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateProductDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Datos inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Crear producto
+      tags:
+      - Productos
+  /producto/{id}:
+    delete:
+      description: Elimina un producto específico.
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Eliminar producto
+      tags:
+      - Productos
+    get:
+      description: Devuelve los datos de un producto específico.
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.GetProductDto'
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Producto no encontrado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Obtener producto por ID
+      tags:
+      - Productos
+    put:
+      consumes:
+      - application/json
+      description: Actualiza los datos de un producto específico.
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos del producto
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateProductDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Datos o ID inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Actualizar producto
+      tags:
+      - Productos
+  /producto/{id}/restock:
+    post:
+      consumes:
+      - application/json
+      description: Agrega stock adicional a un producto existente.
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos para el reestock
+        in: body
+        name: restock
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.RestockProductDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Datos o ID inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Reabastecer producto
+      tags:
+      - Productos
+  /rol:
+    get:
+      description: Devuelve una lista de todos los roles registrados en el sistema.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de roles encontrados
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.GetRoleDto'
+                  type: array
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener todos los roles
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo rol con permisos específicos.
+      parameters:
+      - description: Datos del nuevo rol
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateRoleDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rol creado exitosamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: 'Datos inválidos. Ejemplo: El nombre del rol ya existe'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear rol
+      tags:
+      - Roles
+  /rol/{id}:
+    delete:
+      description: Elimina un rol específico.
+      parameters:
+      - description: ID del rol
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rol eliminado correctamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar rol
+      tags:
+      - Roles
+    get:
+      description: Devuelve los datos de un rol específico.
+      parameters:
+      - description: ID del rol
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rol encontrado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.GetRoleDto'
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "404":
+          description: Rol no encontrado
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener rol por ID
+      tags:
+      - Roles
+    put:
+      consumes:
+      - application/json
+      description: Actualiza los datos de un rol específico.
+      parameters:
+      - description: ID del rol
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos actualizados del rol
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateRoleDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rol actualizado exitosamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Datos inválidos o ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar rol
+      tags:
+      - Roles
+  /servicio:
+    get:
+      description: Devuelve una lista de todos los servicios registrados en el sistema.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Servicios obtenidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.GetServiceDto'
+                  type: array
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener todos los servicios
+      tags:
+      - Servicios
+    post:
+      consumes:
+      - application/json
+      description: Permite crear un nuevo servicio en el sistema.
+      parameters:
+      - description: Datos del servicio
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ServiceDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Servicio creado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Datos inválidos
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear servicio
+      tags:
+      - Servicios
+  /servicio/{id}:
+    delete:
+      description: Permite eliminar un servicio específico.
+      parameters:
+      - description: ID del servicio
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Servicio eliminado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar servicio
+      tags:
+      - Servicios
+    get:
+      description: Devuelve los datos de un servicio específico.
+      parameters:
+      - description: ID del servicio
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Servicio obtenido
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.GetServiceDto'
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener servicio por ID
+      tags:
+      - Servicios
+    put:
+      consumes:
+      - application/json
+      description: Permite actualizar los datos de un servicio existente.
+      parameters:
+      - description: ID del servicio
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos del servicio
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ServiceDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Servicio actualizado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: ID o datos inválidos
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar servicio
+      tags:
+      - Servicios
+  /stock-movements:
+    get:
+      consumes:
+      - application/json
+      description: Devuelve una lista de todos los movimientos de stock, filtrados
+        opcionalmente por tipo y mes.
+      parameters:
+      - description: Filtrar por tipo de movimiento ('entry' para entradas, 'exit'
+          para salidas)
+        in: query
+        name: type
+        type: string
+      - description: Filtrar por mes (formato YYYY-MM)
+        in: query
+        name: month
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movimientos de stock obtenidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.StockMovementDto'
+                  type: array
+              type: object
+        "500":
+          description: Error al obtener movimientos de stock
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener movimientos de stock
+      tags:
+      - Movimientos de Stock
+  /stock-movements/product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Devuelve los movimientos de stock asociados a un producto específico,
+        filtrados opcionalmente por tipo y mes.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movimientos de stock obtenidos por producto
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.StockMovementDto'
+                  type: array
+              type: object
+        "400":
+          description: ID del producto inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Error al obtener movimientos de stock por producto
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener movimientos de stock por producto
+      tags:
+      - Movimientos de Stock
+  /turno:
+    get:
+      description: Devuelve una lista de todos los turnos registrados, con la posibilidad
+        de aplicar filtros.
+      parameters:
+      - description: ID del cliente (opcional)
+        in: query
+        name: client_id
+        type: string
+      - description: Estado del turno (opcional)
+        in: query
+        name: status
+        type: string
+      - description: 'Fecha de inicio (opcional), formato: YYYY-MM-DD'
+        in: query
+        name: start_date
+        type: string
+      - description: 'Fecha de fin (opcional), formato: YYYY-MM-DD'
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turnos obtenidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.AllAppointmentDto'
+                  type: array
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener todos los turnos
+      tags:
+      - Turnos
+    post:
+      consumes:
+      - application/json
+      description: Permite crear un nuevo turno en el sistema.
+      parameters:
+      - description: Datos del turno
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateAppointmentDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turno creado con éxito
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "400":
+          description: Datos inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Crear turno
+      tags:
+      - Turnos
+  /turno/{id}:
+    delete:
+      description: Permite eliminar un turno del sistema.
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turno eliminado con éxito
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Eliminar turno
+      tags:
+      - Turnos
+    get:
+      description: Devuelve los datos de un turno específico.
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turno obtenido con éxito
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.AppointmentByIDDto'
+                message:
+                  type: string
+              type: object
+        "400":
+          description: ID inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener turno por ID
+      tags:
+      - Turnos
+    put:
+      consumes:
+      - application/json
+      description: Permite actualizar un turno existente en el sistema.
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos actualizados del turno
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateAppointmentDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turno actualizado con éxito
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "400":
+          description: Datos o ID inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Actualizar turno
+      tags:
+      - Turnos
+  /turno/{id}/finalizar:
+    put:
+      consumes:
+      - application/json
+      description: Permite finalizar un turno, registrando productos utilizados y
+        método de pago.
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos para finalizar el turno
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.FinalizeAppointmentDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turno finalizado con éxito
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "400":
+          description: Datos o ID inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Finalizar turno
+      tags:
+      - Turnos
+  /turno/{id}/products:
+    put:
+      consumes:
+      - application/json
+      description: Permite actualizar los productos utilizados en un turno finalizado.
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos de productos
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateAppointmentProductsDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Productos actualizados
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "400":
+          description: Datos inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Actualizar productos del turno
+      tags:
+      - Turnos
+  /usuarios:
+    get:
+      description: Devuelve una lista de todos los usuarios registrados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuarios encontrados
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.GetUserDto'
+                  type: array
+              type: object
+        "500":
+          description: 'Error interno del servidor. Ejemplo: No se pudo obtener la
+            lista de usuarios'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener todos los usuarios
+      tags:
+      - Usuarios
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo usuario en el sistema.
       parameters:
       - description: Datos del usuario
         in: body
@@ -42,11 +1734,137 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Usuario creado con éxito
+        "200":
+          description: Usuario creado exitosamente
           schema:
-            $ref: '#/definitions/dtos.Response'
-      summary: Crear un usuario
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: 'Datos inválidos. Ejemplo: El nombre de usuario ya existe'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: 'Error interno del servidor. Ejemplo: No se pudo conectar a
+            la base de datos'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear usuario
       tags:
-      - Users
+      - Usuarios
+  /usuarios/{id}:
+    delete:
+      description: Elimina un usuario específico.
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario eliminado correctamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: 'ID inválido. Ejemplo: El ID proporcionado no es válido'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: 'Error interno del servidor. Ejemplo: No se pudo eliminar el
+            usuario'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar usuario
+      tags:
+      - Usuarios
+    get:
+      description: Devuelve los datos de un usuario específico.
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario encontrado
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.GetUserDto'
+              type: object
+        "400":
+          description: 'ID inválido. Ejemplo: El ID proporcionado no es válido'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "404":
+          description: 'Usuario no encontrado. Ejemplo: El usuario solicitado no existe'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener usuario por ID
+      tags:
+      - Usuarios
+    put:
+      consumes:
+      - application/json
+      description: Actualiza los datos de un usuario específico.
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos del usuario
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario actualizado correctamente
+          schema:
+            allOf:
+            - $ref: '#/definitions/dtos.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: 'Datos o ID inválidos. Ejemplo: Los datos enviados son inválidos'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: 'Error interno del servidor. Ejemplo: No se pudo actualizar
+            el usuario'
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar usuario
+      tags:
+      - Usuarios
 swagger: "2.0"

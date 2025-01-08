@@ -80,13 +80,23 @@ func CreateAppointment(appointmentDto dtos.CreateAppointmentDto) error {
 	return nil
 }
 
-func GetAllAppointments() ([]dtos.AllAppointmentDto, error) {
-	logger.Log.Info("[AppointmentService][GetAllAppointments] Obteniendo todas las citas")
+func GetAllAppointments(clientID, status, startDate, endDate string) ([]dtos.AllAppointmentDto, error) {
+	logger.Log.Info("[AppointmentService][GetAllAppointments] Obteniendo todas las citas con filtros")
+
 	var appointments []models.Appointment
-	if err := database.DB.
-		Preload("Client").
-		Preload("AppointmentServices.Service").
-		Find(&appointments).Error; err != nil {
+	query := database.DB.Preload("Client").Preload("AppointmentServices.Service")
+
+	if clientID != "" {
+		query = query.Where("client_id = ?", clientID)
+	}
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if startDate != "" && endDate != "" {
+		query = query.Where("appointment_date BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	if err := query.Find(&appointments).Error; err != nil {
 		logger.Log.Error("[AppointmentService][GetAllAppointments] Error al obtener turnos: ", err)
 		return nil, errors.New("error al obtener citas")
 	}
@@ -102,10 +112,11 @@ func GetAllAppointments() ([]dtos.AllAppointmentDto, error) {
 			ClientID:             appointment.ClientID,
 			ClientName:           fmt.Sprintf("%s %s", appointment.Client.Name, appointment.Client.LastName),
 			Status:               appointment.Status,
-			AppointmentDate:      appointment.AppointmentDate,
+			AppointmentDate:      appointment.AppointmentDate.Format("02/01/2006 15:04"),
 			EstimatedTimeMinutes: timeInMinutes,
 		})
 	}
+
 	return appointmentsDto, nil
 }
 
@@ -153,7 +164,7 @@ func GetAppointmentByID(id uint) (dtos.AppointmentByIDDto, error) {
 		ClientID:        appointment.ClientID,
 		ClientName:      fmt.Sprintf("%s %s", appointment.Client.Name, appointment.Client.LastName),
 		Status:          appointment.Status,
-		AppointmentDate: appointment.AppointmentDate,
+		AppointmentDate: appointment.AppointmentDate.Format("02/01/2006 15:04"),
 		Services:        services,
 		Products:        products,
 		CreatedAt:       appointment.CreatedAt,
@@ -265,6 +276,11 @@ func DeleteAppointment(id uint) error {
 func FinalizeAppointment(id uint, finalizeDto dtos.FinalizeAppointmentDto) error {
 	logger.Log.Infof("[AppointmentService][FinalizeAppointment] Finalizando turno con ID: %d", id)
 
+	if finalizeDto.PaymentMethod == "" {
+		logger.Log.Warn("[AppointmentService][FinalizeAppointment] Método de pago faltante")
+		return errors.New("el método de pago es obligatorio")
+	}
+
 	return database.DB.Transaction(func(tx *gorm.DB) error {
 		var appointment models.Appointment
 		if err := tx.First(&appointment, id).Error; err != nil {
@@ -283,6 +299,7 @@ func FinalizeAppointment(id uint, finalizeDto dtos.FinalizeAppointmentDto) error
 
 		// Actualizar el estado del turno
 		appointment.Status = "finalizado"
+		appointment.PaymentMethod = finalizeDto.PaymentMethod
 		if err := tx.Save(&appointment).Error; err != nil {
 			logger.Log.Error("[AppointmentService][FinalizeAppointment] Error al actualizar estado del turno: ", err)
 			return errors.New("error al actualizar estado del turno")
@@ -318,6 +335,18 @@ func FinalizeAppointment(id uint, finalizeDto dtos.FinalizeAppointmentDto) error
 				if err := tx.Create(&appointmentProduct).Error; err != nil {
 					logger.Log.Error("[AppointmentService][FinalizeAppointment] Error al registrar producto en turno: ", err)
 					return errors.New("error al registrar producto en turno")
+				}
+
+				// Registrar el movimiento de stock
+				stockMovement := models.StockMovement{
+					ProductID:   product.ID,
+					Quantity:    -productDto.Quantity, // Negativo para salida
+					ProductUnit: product.Unit,
+					Reason:      fmt.Sprintf("Utilización en turno ID %d", appointment.ID),
+				}
+				if err := tx.Create(&stockMovement).Error; err != nil {
+					logger.Log.Error("[AppointmentService][FinalizeAppointment] Error al registrar movimiento de stock: ", err)
+					return errors.New("error al registrar movimiento de stock")
 				}
 			}
 		}

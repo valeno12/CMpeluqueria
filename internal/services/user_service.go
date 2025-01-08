@@ -55,9 +55,27 @@ func CreateUser(userDto dtos.UserDto) error {
 		return errors.New("el nombre de usuario ya está en uso")
 	}
 
-	userDto.Password = HashPassword(userDto.Password)
-	user := models.User{Username: userDto.Username, Password: userDto.Password, RoleID: userDto.RoleID}
+	if userDto.RoleID != 0 {
+		var role models.Role
+		if err := database.DB.First(&role, userDto.RoleID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				logger.Log.Warnf("[UserService][CreateUser] Rol no encontrado: ID %d", userDto.RoleID)
+				return errors.New("el rol asignado no existe")
+			}
+			logger.Log.Error("[UserService][CreateUser] Error al buscar rol: ", err)
+			return errors.New("error al validar el rol asignado")
+		}
+	}
 
+	// Hashear la contraseña
+	userDto.Password = HashPassword(userDto.Password)
+	user := models.User{
+		Username: userDto.Username,
+		Password: userDto.Password,
+		RoleID:   userDto.RoleID,
+	}
+
+	// Crear el usuario
 	if err := database.DB.Create(&user).Error; err != nil {
 		logger.Log.Error("[UserService][CreateUser] Error al crear usuario: ", err)
 		return err

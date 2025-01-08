@@ -68,7 +68,12 @@ func GetClientByID(id uint) (dtos.GetClientDto, error) {
 	logger.Log.Infof("[ClientService][GetClientByID] Intentando obtener cliente con ID: %d", id)
 
 	var client models.Client
-	if err := database.DB.Where("id = ?", id).First(&client).Error; err != nil {
+
+	err := database.DB.
+		Where("id = ?", id).
+		First(&client).
+		Error
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Log.Warnf("[ClientService][GetClientByID] Cliente no encontrado: ID %d", id)
 			return dtos.GetClientDto{}, errors.New("cliente no encontrado")
@@ -77,12 +82,31 @@ func GetClientByID(id uint) (dtos.GetClientDto, error) {
 		return dtos.GetClientDto{}, errors.New("error al obtener cliente")
 	}
 
+	var appointments []models.Appointment
+
+	if err := database.DB.
+		Where("client_id = ?", id).
+		Find(&appointments).Error; err != nil {
+		logger.Log.Error("[ClientService][GetClientByID] Error al obtener turnos del cliente: ", err)
+		return dtos.GetClientDto{}, errors.New("error al obtener turnos del cliente")
+	}
+
+	var appointmentDtos []dtos.ClientAppointmentDto
+
+	for _, appointment := range appointments {
+		appointmentDtos = append(appointmentDtos, dtos.ClientAppointmentDto{
+			ID:              appointment.ID,
+			AppointmentDate: appointment.AppointmentDate.Format("02/01/2006 15:04"),
+			Status:          appointment.Status,
+		})
+	}
 	clientDto := dtos.GetClientDto{
-		ID:       client.ID,
-		Name:     client.Name,
-		LastName: client.LastName,
-		Phone:    client.Phone,
-		Email:    client.Email,
+		ID:           client.ID,
+		Name:         client.Name,
+		LastName:     client.LastName,
+		Phone:        client.Phone,
+		Email:        client.Email,
+		Appointments: appointmentDtos,
 	}
 
 	logger.Log.Infof("[ClientService][GetClientByID] Cliente obtenido con éxito: ID %d", id)

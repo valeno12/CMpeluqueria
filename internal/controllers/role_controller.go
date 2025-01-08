@@ -11,6 +11,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary Crear rol
+// @Description Crea un nuevo rol con permisos específicos.
+// @Tags Roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dtos.CreateRoleDto true "Datos del nuevo rol"
+// @Success 200 {object} dtos.Response{data=nil} "Rol creado exitosamente"
+// @Failure 400 {object} dtos.ErrorResponse "Datos inválidos. Ejemplo: El nombre del rol ya existe"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
+// @Router /rol [post]
 func CreateRole(c echo.Context) error {
 	logger.Log.Info("[RoleController][CreateRole] Intentando crear un rol")
 	var role dtos.CreateRoleDto
@@ -24,9 +35,17 @@ func CreateRole(c echo.Context) error {
 		return helpers.RespondError(c, http.StatusInternalServerError, err.Error())
 	}
 	logger.Log.Infof("[RoleController][CreateRole] Rol creado con éxito: %s", role.Name)
-	return helpers.RespondSuccess(c, "Rol creado", nil)
+	return helpers.RespondSuccess(c, "Rol creado exitosamente", nil)
 }
 
+// @Summary Obtener todos los roles
+// @Description Devuelve una lista de todos los roles registrados en el sistema.
+// @Tags Roles
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dtos.Response{data=[]dtos.GetRoleDto} "Lista de roles encontrados"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
+// @Router /rol [get]
 func GetAllRoles(c echo.Context) error {
 	logger.Log.Info("[RoleController][GetAllRoles] Intentando obtener todos los roles")
 	roles, err := services.GetAllRoles()
@@ -38,6 +57,16 @@ func GetAllRoles(c echo.Context) error {
 	return helpers.RespondSuccess(c, "Roles obtenidos", roles)
 }
 
+// @Summary Obtener rol por ID
+// @Description Devuelve los datos de un rol específico.
+// @Tags Roles
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID del rol"
+// @Success 200 {object} dtos.Response{data=dtos.GetRoleDto} "Rol encontrado"
+// @Failure 400 {object} dtos.ErrorResponse "ID inválido"
+// @Failure 404 {object} dtos.ErrorResponse "Rol no encontrado"
+// @Router /rol/{id} [get]
 func GetRoleByID(c echo.Context) error {
 	id := c.Param("id")
 	logger.Log.Infof("[RoleController][GetRoleByID] Intentando obtener rol con ID: %s", id)
@@ -56,6 +85,18 @@ func GetRoleByID(c echo.Context) error {
 	return helpers.RespondSuccess(c, "Rol encontrado", role)
 }
 
+// @Summary Actualizar rol
+// @Description Actualiza los datos de un rol específico.
+// @Tags Roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID del rol"
+// @Param request body dtos.CreateRoleDto true "Datos actualizados del rol"
+// @Success 200 {object} dtos.Response{data=nil} "Rol actualizado exitosamente"
+// @Failure 400 {object} dtos.ErrorResponse "Datos inválidos o ID inválido"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
+// @Router /rol/{id} [put]
 func UpdateRole(c echo.Context) error {
 	id := c.Param("id")
 	logger.Log.Infof("[RoleController][UpdateRole] Intentando actualizar rol con ID: %s", id)
@@ -75,9 +116,19 @@ func UpdateRole(c echo.Context) error {
 		return helpers.RespondError(c, http.StatusInternalServerError, err.Error())
 	}
 	logger.Log.Infof("[RoleController][UpdateRole] Rol actualizado con éxito: %s", role.Name)
-	return helpers.RespondSuccess(c, "Rol actualizado", nil)
+	return helpers.RespondSuccess(c, "Rol actualizado correctamente", nil)
 }
 
+// @Summary Eliminar rol
+// @Description Elimina un rol específico.
+// @Tags Roles
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID del rol"
+// @Success 200 {object} dtos.Response{data=nil} "Rol eliminado correctamente"
+// @Failure 400 {object} dtos.ErrorResponse "ID inválido"
+// @Failure 500 {object} dtos.ErrorResponse "Error interno del servidor"
+// @Router /rol/{id} [delete]
 func DeleteRole(c echo.Context) error {
 	id := c.Param("id")
 	logger.Log.Infof("[RoleController][DeleteRole] Intentando eliminar rol con ID: %s", id)
@@ -92,5 +143,5 @@ func DeleteRole(c echo.Context) error {
 		return helpers.RespondError(c, http.StatusInternalServerError, err.Error())
 	}
 	logger.Log.Infof("[RoleController][DeleteRole] Rol eliminado con éxito: ID %d", roleID)
-	return helpers.RespondSuccess(c, "Rol eliminado", nil)
+	return helpers.RespondSuccess(c, "Rol eliminado correctamente", nil)
 }

@@ -44,3 +44,15 @@ func ParseCustomDate(dateString string) (time.Time, error) {
 
 	return parsedTime, nil
 }
+
+func ParseMonthFilter(month string) (time.Time, time.Time, error) {
+	startDate, err := time.Parse("2006-01", month)
+	if err != nil {
+		return time.Time{}, time.Time{}, errors.New("formato de mes inválido. Use 'YYYY-MM'")
+	}
+
+	// La fecha de fin del mes: último día del mes a las 23:59:59.
+	endDate := startDate.AddDate(0, 1, -1).Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+
+	return startDate, endDate, nil
+}
