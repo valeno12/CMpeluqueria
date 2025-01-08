@@ -14,5 +14,9 @@ FROM alpine:3.18
 
 WORKDIR /app
 COPY --from=builder /app/main .
+COPY entrypoint.sh /app/entrypoint.sh
+COPY .env /app/.env 
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8080
-CMD ["./main"]
+CMD ["/app/entrypoint.sh", "./main"]
