@@ -55,6 +55,7 @@ func GetAllServices() ([]dtos.GetServiceDto, error) {
 	var serviceDtos []dtos.GetServiceDto
 	for _, service := range services {
 		serviceDtos = append(serviceDtos, dtos.GetServiceDto{
+			ID:            service.ID,
 			Name:          service.Name,
 			Description:   service.Description,
 			Price:         service.Price,
