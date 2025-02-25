@@ -2881,6 +2881,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 90
                 },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "name": {
                     "type": "string",
                     "example": "Corte de pelo"

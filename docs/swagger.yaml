@@ -259,6 +259,9 @@ definitions:
       estimated_time_minutes:
         example: 90
         type: integer
+      id:
+        example: 1
+        type: integer
       name:
         example: Corte de pelo
         type: string
